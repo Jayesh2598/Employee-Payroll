@@ -14,9 +14,9 @@ public class EmployeePayrollService {
 	}
 
 	private List<EmployeePayrollData> employeePayrollList;
-
-	public EmployeePayrollService() {
-	}
+	public List<String> readFile;
+	
+	public EmployeePayrollService() {	}
 
 	public EmployeePayrollService(List<EmployeePayrollData> employeePayrollList) {
 		this.employeePayrollList = employeePayrollList;
@@ -30,6 +30,8 @@ public class EmployeePayrollService {
 		employeePayrollService.writeEmployeePayrollData(IOService.CONSOLE_IO);
 		employeePayrollService.writeEmployeePayrollData(IOService.FILE_IO);
 		System.out.println("Number of entries : " + employeePayrollService.countEntries(IOService.FILE_IO));
+		employeePayrollService.readFile(IOService.FILE_IO);
+		System.out.println(employeePayrollService.readFile);
 	}
 
 	private void readEmployeePayrollData(Scanner consoleInputReader) {
@@ -59,5 +61,10 @@ public class EmployeePayrollService {
 		if (ioService.equals(IOService.FILE_IO))
 			new EmployeePayrollFileIOService().printData();
 
+	}
+	
+	public void readFile(IOService ioService) {
+		if (ioService.equals(IOService.FILE_IO))
+			this.readFile = new EmployeePayrollFileIOService().readFile();
 	}
 }

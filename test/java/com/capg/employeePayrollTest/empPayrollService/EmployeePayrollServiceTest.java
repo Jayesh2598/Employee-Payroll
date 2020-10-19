@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 
 import com.capg.employeePayroll.model.EmployeePayrollData;
 import com.capg.employeePayroll.controller.EmployeePayrollService;
+import com.capg.employeePayroll.controller.EmployeePayrollService.IOService;
+
 import static com.capg.employeePayroll.controller.EmployeePayrollService.IOService.FILE_IO;
 
 public class EmployeePayrollServiceTest {
@@ -20,6 +22,8 @@ public class EmployeePayrollServiceTest {
 		employeePayrollService.printData(FILE_IO);
 		long entries = employeePayrollService.countEntries(FILE_IO);
 		System.out.println("Number of entries : " + entries);
+		employeePayrollService.readFile(IOService.FILE_IO);
+		System.out.println(employeePayrollService.readFile);
 		assertTrue(entries == 3);
 	}
 }
