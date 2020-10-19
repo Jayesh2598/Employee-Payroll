@@ -19,6 +19,7 @@ public class EmployeePayrollServiceTest {
 		employeePayrollService.writeEmployeePayrollData(FILE_IO);
 		employeePayrollService.printData(FILE_IO);
 		long entries = employeePayrollService.countEntries(FILE_IO);
+		System.out.println("Number of entries : " + entries);
 		assertTrue(entries == 3);
 	}
 }

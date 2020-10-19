@@ -29,6 +29,7 @@ public class EmployeePayrollService {
 		employeePayrollService.readEmployeePayrollData(consoleInputReader);
 		employeePayrollService.writeEmployeePayrollData(IOService.CONSOLE_IO);
 		employeePayrollService.writeEmployeePayrollData(IOService.FILE_IO);
+		System.out.println("Number of entries : " + employeePayrollService.countEntries(IOService.FILE_IO));
 	}
 
 	private void readEmployeePayrollData(Scanner consoleInputReader) {
