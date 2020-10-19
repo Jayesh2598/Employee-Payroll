@@ -28,15 +28,16 @@ public class EmployeePayrollService {
 		Scanner consoleInputReader = new Scanner(System.in);
 		employeePayrollService.readEmployeePayrollData(consoleInputReader);
 		employeePayrollService.writeEmployeePayrollData(IOService.CONSOLE_IO);
+		employeePayrollService.writeEmployeePayrollData(IOService.FILE_IO);
 	}
 
 	private void readEmployeePayrollData(Scanner consoleInputReader) {
 		System.out.println("Enter the employee ID : ");
-		int id = consoleInputReader.nextInt();
+		int id = Integer.parseInt(consoleInputReader.nextLine());
 		System.out.println("Enter the employee name : ");
-		String name = consoleInputReader.next();
+		String name = consoleInputReader.nextLine();
 		System.out.println("Enter the employee's salary : ");
-		double salary = consoleInputReader.nextDouble();
+		double salary = Double.parseDouble(consoleInputReader.nextLine());
 		employeePayrollList.add(new EmployeePayrollData(id, name, salary));
 	}
 
