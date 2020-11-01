@@ -67,4 +67,10 @@ public class EmployeePayrollService {
 		if (ioService.equals(IOService.FILE_IO))
 			this.readFile = new EmployeePayrollFileIOService().readFile();
 	}
+
+	public List<EmployeePayrollData> readEmployeePayrollDB(IOService ioService) {
+		if(ioService == IOService.DB_IO)
+			this.employeePayrollList = new EmployeePayrollDBService().readData();
+		return employeePayrollList;
+	}
 }

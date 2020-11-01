@@ -1,6 +1,7 @@
 package com.capg.employeePayrollTest.empPayrollService;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
@@ -25,5 +26,12 @@ public class EmployeePayrollServiceTest {
 		employeePayrollService.readFile(IOService.FILE_IO);
 		System.out.println(employeePayrollService.readFile);
 		assertTrue(entries == 3);
+	}
+	
+	@Test
+	public void givenEmployeePayrollDB_WhenRetrieved_ShouldMatchEmployeeCount() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
+		assertTrue(data.size() == 3);
 	}
 }
