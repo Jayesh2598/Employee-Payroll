@@ -34,4 +34,13 @@ public class EmployeePayrollServiceTest {
 		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
 		assertTrue(data.size() == 3);
 	}
+	
+	@Test
+	public void givenNewSalaryForEmployee_WhenUpdated_ShouldSyncWithDB() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
+		employeePayrollService.updateEmployeeSalary("Terisa",3000000.00);
+		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa");
+		assertTrue(result);
+	}
 }
