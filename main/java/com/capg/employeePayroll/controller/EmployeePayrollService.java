@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import com.capg.employeePayroll.fileOps.EmployeePayrollFileIOService;
+import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
 import com.capg.employeePayroll.model.EmployeePayrollData;
 
 public class EmployeePayrollService {
@@ -16,7 +17,7 @@ public class EmployeePayrollService {
 	private List<EmployeePayrollData> employeePayrollList;
 	public List<String> readFile;
 	private EmployeePayrollDBService employeePayrollDBService;
-	
+
 	public EmployeePayrollService() {
 		employeePayrollDBService = EmployeePayrollDBService.getInstance();
 	}
@@ -66,31 +67,32 @@ public class EmployeePayrollService {
 			new EmployeePayrollFileIOService().printData();
 
 	}
-	
+
 	public void readFile(IOService ioService) {
 		if (ioService.equals(IOService.FILE_IO))
 			this.readFile = new EmployeePayrollFileIOService().readFile();
 	}
 
 	public List<EmployeePayrollData> readEmployeePayrollDB(IOService ioService) {
-		if(ioService == IOService.DB_IO)
+		if (ioService == IOService.DB_IO)
 			this.employeePayrollList = employeePayrollDBService.readData();
 		return employeePayrollList;
 	}
 
-	public void updateEmployeeSalary(String name, double salary) {
-		int result = employeePayrollDBService.updateEmployeeData(name,salary);
-		if(result == 0) return;
+	public void updateEmployeeSalary(String name, double salary) throws EmployeePayrollDBException {
+		int result = employeePayrollDBService.updateEmployeeData(name, salary);
+		if (result == 0)
+			throw new EmployeePayrollDBException("No updation performed.");
 		EmployeePayrollData employeePayrollData = this.getEmployeePayrollData(name);
-		if(employeePayrollData != null)
+		if (employeePayrollData != null)
 			employeePayrollData.salary = salary;
 	}
 
 	private EmployeePayrollData getEmployeePayrollData(String name) {
 		return this.employeePayrollList.stream()
-				.filter(item -> item.name.equals(name))
-				.findFirst()
-				.orElse(null);
+					.filter(item -> item.name.equals(name))
+					.findFirst()
+					.orElse(null);
 	}
 
 	public boolean checkEmployeePayrollInSyncWithDB(String name) {

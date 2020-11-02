@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import com.capg.employeePayroll.model.EmployeePayrollData;
 import com.capg.employeePayroll.controller.EmployeePayrollService;
 import com.capg.employeePayroll.controller.EmployeePayrollService.IOService;
+import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
 
 import static com.capg.employeePayroll.controller.EmployeePayrollService.IOService.FILE_IO;
 
@@ -36,10 +37,10 @@ public class EmployeePayrollServiceTest {
 	}
 	
 	@Test
-	public void givenNewSalaryForEmployee_WhenUpdated_ShouldSyncWithDB() {
+	public void givenNewSalaryForEmployee_WhenUpdated_ShouldSyncWithDB() throws EmployeePayrollDBException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
-		employeePayrollService.updateEmployeeSalary("Terisa",3000000.00);
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
+		employeePayrollService.updateEmployeeSalary("Terisa", 3000000.00);
 		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa");
 		assertTrue(result);
 	}
