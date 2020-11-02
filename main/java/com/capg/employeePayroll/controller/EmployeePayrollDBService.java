@@ -146,6 +146,7 @@ public class EmployeePayrollDBService {
 		Connection connection = null;
 		try {
 			connection = this.getConnection();
+			connection.setAutoCommit(false);
 		}
 		catch (SQLException e) {
 			throw new EmployeePayrollDBException("Couldn't establish connection.");
@@ -161,6 +162,11 @@ public class EmployeePayrollDBService {
 					employeeId = resultSet.getInt(1);
 			}
 		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			throw new EmployeePayrollDBException("Unable to insert into employee_payroll");
 		}
 		
@@ -174,8 +180,14 @@ public class EmployeePayrollDBService {
 			int rowsAffected = statement.executeUpdate(sql);
 			if(rowsAffected == 1) {
 				employeePayrollData = new EmployeePayrollData(employeeId, name, salary, startDate);
+				connection.commit();
 			}	
 		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			throw new EmployeePayrollDBException("Unable to insert into payroll_details");
 		} finally {
 			if(connection != null)
