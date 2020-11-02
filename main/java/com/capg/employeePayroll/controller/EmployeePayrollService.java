@@ -3,6 +3,8 @@ package com.capg.employeePayroll.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.capg.employeePayroll.fileOps.EmployeePayrollFileIOService;
 import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
@@ -13,7 +15,8 @@ public class EmployeePayrollService {
 	public enum IOService {
 		CONSOLE_IO, FILE_IO, DB_IO, REST_IO
 	}
-
+	
+	private static Logger LOG = Logger.getLogger(EmployeePayrollService.class.getName());
 	private List<EmployeePayrollData> employeePayrollList;
 	public List<String> readFile;
 	private EmployeePayrollDBService employeePayrollDBService;
@@ -51,7 +54,7 @@ public class EmployeePayrollService {
 
 	public void writeEmployeePayrollData(IOService ioService) {
 		if (ioService.equals(IOService.CONSOLE_IO))
-			System.out.println("Writing Employee payroll data on Console: " + employeePayrollList);
+			LOG.log(Level.INFO, "Writing Employee payroll data on Console: " + employeePayrollList);
 		else if (ioService.equals(IOService.FILE_IO))
 			new EmployeePayrollFileIOService().writeData(employeePayrollList);
 	}

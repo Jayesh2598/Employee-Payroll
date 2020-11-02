@@ -9,13 +9,18 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.capg.employeePayroll.model.EmployeePayrollData;
 
 public class EmployeePayrollDBService {
 	
+	private static Logger LOG = Logger.getLogger(EmployeePayrollDBService.class.getName());
+	
 	private PreparedStatement employeePayrollDataStatement;
 	private static EmployeePayrollDBService employeePayrollDBService;
+	
 	private EmployeePayrollDBService() {
 	}
 
@@ -43,9 +48,9 @@ public class EmployeePayrollDBService {
 		String userName = "root";
 		String password = "Interference@SQL1";
 		Connection connection = null;
-		System.out.println("Connecting to database: " + dbURL);
+		LOG.log(Level.INFO, "Connecting to database : "+dbURL);
 		connection = DriverManager.getConnection(dbURL, userName, password);
-		System.out.println("Connection successful! " + connection);
+		LOG.log(Level.INFO, "Connection Successful : "+connection);
 		return connection;
 	}
 
