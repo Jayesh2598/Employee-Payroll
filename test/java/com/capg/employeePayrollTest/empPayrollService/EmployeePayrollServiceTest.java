@@ -8,9 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+import org.junit.Assert;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.capg.employeePayroll.model.EmployeePayrollData;
+
 import com.capg.employeePayroll.controller.EmployeePayrollService;
 import com.capg.employeePayroll.controller.EmployeePayrollService.IOService;
 import com.capg.employeePayroll.controller.EmployeePayrollDBService.Operation;
@@ -30,15 +34,15 @@ public class EmployeePayrollServiceTest {
 		long entries = employeePayrollService.countEntries(FILE_IO);
 		System.out.println("Number of entries : " + entries);
 		employeePayrollService.readFile(IOService.FILE_IO);
-		System.out.println(employeePayrollService.readFile);
-		assertTrue(entries == 3);
+		System.out.println(employeePayrollService.getReadFile());
+		Assert.assertEquals(3, entries);
 	}
 	
 	@Test //JDBC_UC1,2
 	public void givenEmployeePayrollDB_WhenRetrieved_ShouldMatchEmployeeCount() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
-		assertTrue(data.size() == 3);
+		assertEquals(3, data.size());
 	}
 	
 	@Test //JDBC_UC3,4
@@ -57,7 +61,7 @@ public class EmployeePayrollServiceTest {
 		LocalDate startDate = LocalDate.of(2018, 01, 02);
 		LocalDate endDate = LocalDate.now();
 		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollForDateRange(IOService.DB_IO, Date.valueOf(startDate), Date.valueOf(endDate));
-		assertTrue(data.size() == 3);
+		Assert.assertEquals(3, data.size());
 	}
 	
 	@Test //JDBC_UC6
@@ -75,5 +79,14 @@ public class EmployeePayrollServiceTest {
 		assertTrue(dataByGender.get("M").equals(3000000.00) && dataByGender.get("F").equals(3000000.00));
 		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.COUNT);
 		assertTrue(dataByGender.get("M").equals(2.00) && dataByGender.get("F").equals(1.00));
+	}
+	
+	@Test //JDBC_UC7
+	public void givenNewEmployee_WhenAdded_ShouldSyncWithDB() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
+		employeePayrollService.addEmployeeToPayroll("Mark", 5000000.00, Date.valueOf(LocalDate.now()), "M");
+		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Mark");
+		assertTrue(result);
 	}
 }

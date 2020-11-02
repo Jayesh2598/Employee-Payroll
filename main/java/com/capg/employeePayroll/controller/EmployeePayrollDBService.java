@@ -22,7 +22,7 @@ public class EmployeePayrollDBService {
 		SUM, AVG, MIN, MAX, COUNT;
 	}
 	
-	private static Logger LOG = Logger.getLogger(EmployeePayrollDBService.class.getName());
+	private static Logger log = Logger.getLogger(EmployeePayrollDBService.class.getName());
 	
 	private PreparedStatement employeePayrollDataStatement;
 	private static EmployeePayrollDBService employeePayrollDBService;
@@ -47,7 +47,8 @@ public class EmployeePayrollDBService {
 	}
 	
 	public Map<String, Double> getDataByGender(Operation operation) {
-		String sql, columnName;
+		String sql;
+		String columnName;
 		switch (operation) {
 			case SUM:
 				sql = "SELECT gender, SUM(salary) AS Sum FROM employee_payroll GROUP BY gender;";
@@ -92,8 +93,8 @@ public class EmployeePayrollDBService {
 	
 	public List<EmployeePayrollData> getEmployeePayrollAfterExecutingQuery(String sql){
 		List<EmployeePayrollData> employeePayrollList = new ArrayList<>();
-		try (Connection con = this.getConnection()) {
-			Statement statement = con.createStatement();
+		try (Connection connection = this.getConnection();
+			Statement statement = connection.createStatement();) {
 			ResultSet resultSet = statement.executeQuery(sql);
 			employeePayrollList = this.getEmployeePayrollData(resultSet);
 		} catch (SQLException e) {
@@ -108,13 +109,34 @@ public class EmployeePayrollDBService {
 
 	private int updateEmployeeDataUsingStatement(String name, double salary) {
 		String sql = String.format("UPDATE employee_payroll set salary = %.2f where name = '%s';", salary, name);
-		try (Connection connection = this.getConnection()) {
-			Statement statement = connection.createStatement();
+		try (Connection connection = this.getConnection();
+			Statement statement = connection.createStatement();) {
 			return statement.executeUpdate(sql);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return 0;
+	}
+	
+
+	public EmployeePayrollData addEmployeeToPayroll(String name, double salary, Date startDate, String gender) {
+		int employeeId = -1;
+		EmployeePayrollData employeePayrollData = null;
+		String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, start) " + "VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, startDate);
+		try (Connection connection = this.getConnection();
+			Statement statement = connection.createStatement();) {
+			int rowsAffected = statement.executeUpdate(sql, statement.RETURN_GENERATED_KEYS);
+			if(rowsAffected == 1) {
+				ResultSet resultSet = statement.getGeneratedKeys();
+				if(resultSet.next())
+					employeeId = resultSet.getInt(1);
+			}
+			employeePayrollData = new EmployeePayrollData(employeeId, name, salary, startDate);
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return employeePayrollData;
 	}
 
 	public List<EmployeePayrollData> getEmployeePayrollData(String name) {
@@ -165,10 +187,11 @@ public class EmployeePayrollDBService {
 		String dbURL = "jdbc:mysql://localhost:3306/payroll_service?useSSL=false";
 		String userName = "root";
 		String password = "Interference@SQL1";
-		Connection connection = null;
-		LOG.log(Level.INFO, "Connecting to database : "+dbURL);
+		Connection connection;
+		log.log(Level.INFO, ()-> "Connecting to database : "+dbURL);
 		connection = DriverManager.getConnection(dbURL, userName, password);
-		LOG.log(Level.INFO, "Connection Successful : "+connection);
+		log.log(Level.INFO, ()-> "Connection Successful : "+connection);
 		return connection;
 	}
+
 }

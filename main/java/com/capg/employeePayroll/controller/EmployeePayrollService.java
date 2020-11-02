@@ -19,11 +19,15 @@ public class EmployeePayrollService {
 		CONSOLE_IO, FILE_IO, DB_IO, REST_IO
 	}
 	
-	private static Logger LOG = Logger.getLogger(EmployeePayrollService.class.getName());
+	private static Logger log = Logger.getLogger(EmployeePayrollService.class.getName());
 	private List<EmployeePayrollData> employeePayrollList;
-	public List<String> readFile;
+	private List<String> readFile;
 	private EmployeePayrollDBService employeePayrollDBService;
 
+	public List<String> getReadFile() {
+		return readFile;
+	}
+	
 	public EmployeePayrollService() {
 		employeePayrollDBService = EmployeePayrollDBService.getInstance();
 	}
@@ -57,7 +61,7 @@ public class EmployeePayrollService {
 
 	public void writeEmployeePayrollData(IOService ioService) {
 		if (ioService.equals(IOService.CONSOLE_IO))
-			LOG.log(Level.INFO, "Writing Employee payroll data on Console: " + employeePayrollList);
+			log.log(Level.INFO, () -> "Writing Employee payroll data on Console: " + employeePayrollList);
 		else if (ioService.equals(IOService.FILE_IO))
 			new EmployeePayrollFileIOService().writeData(employeePayrollList);
 	}
@@ -117,5 +121,9 @@ public class EmployeePayrollService {
 		if (ioService == IOService.DB_IO)
 			return employeePayrollDBService.getDataByGender(operation);
 		return null;
+	}
+
+	public void addEmployeeToPayroll(String name, double salary, Date startDate, String gender) {
+		employeePayrollList.add(employeePayrollDBService.addEmployeeToPayroll(name, salary, startDate, gender));
 	}
 }
