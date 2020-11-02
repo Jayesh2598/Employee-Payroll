@@ -124,6 +124,10 @@ public class EmployeePayrollService {
 	}
 
 	public void addEmployeeToPayroll(String name, double salary, Date startDate, String gender) {
-		employeePayrollList.add(employeePayrollDBService.addEmployeeToPayroll(name, salary, startDate, gender));
+		try {
+			employeePayrollList.add(employeePayrollDBService.addEmployeeToPayroll(name, salary, startDate, gender));
+		} catch (EmployeePayrollDBException e) {
+			log.log(Level.SEVERE, e.getMessage());
+		}
 	}
 }

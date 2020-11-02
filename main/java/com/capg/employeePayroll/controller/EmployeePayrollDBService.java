@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
 import com.capg.employeePayroll.model.EmployeePayrollData;
 
 public class EmployeePayrollDBService {
@@ -119,7 +120,7 @@ public class EmployeePayrollDBService {
 	}
 	
 
-	public EmployeePayrollData addEmployeeToPayroll(String name, double salary, Date startDate, String gender) {
+	public EmployeePayrollData addEmployeeToEmployeePayrollTable(String name, double salary, Date startDate, String gender) {
 		int employeeId = -1;
 		EmployeePayrollData employeePayrollData = null;
 		String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, start) " + "VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, startDate);
@@ -138,6 +139,55 @@ public class EmployeePayrollDBService {
 		}
 		return employeePayrollData;
 	}
+	
+	public EmployeePayrollData addEmployeeToPayroll(String name, double salary, Date startDate, String gender) throws EmployeePayrollDBException {
+		int employeeId = -1;
+		EmployeePayrollData employeePayrollData = null;
+		Connection connection = null;
+		try {
+			connection = this.getConnection();
+		}
+		catch (SQLException e) {
+			throw new EmployeePayrollDBException("Couldn't establish connection.");
+		}
+		
+		try (Statement statement = connection.createStatement();) {
+			String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, start) " + 
+										"VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, startDate);
+			int rowsAffected = statement.executeUpdate(sql, statement.RETURN_GENERATED_KEYS);
+			if(rowsAffected == 1) {
+				ResultSet resultSet = statement.getGeneratedKeys();
+				if(resultSet.next())
+					employeeId = resultSet.getInt(1);
+			}
+		} catch (SQLException e) {
+			throw new EmployeePayrollDBException("Unable to insert into employee_payroll");
+		}
+		
+		try (Statement statement = connection.createStatement();) {
+			double deductions = salary * 0.2;
+			double taxable_pay = salary - deductions;
+			double tax = taxable_pay * 0.1;
+			double net_pay = salary - tax;
+			String sql = String.format("INSERT INTO payroll_details (employee_id, basic_pay, deductions, taxable_pay, tax, net_pay)" 
+										+ " VALUES ('%s', '%s', '%s', '%s', '%s', '%s');", employeeId, salary, deductions, taxable_pay, tax, net_pay);
+			int rowsAffected = statement.executeUpdate(sql);
+			if(rowsAffected == 1) {
+				employeePayrollData = new EmployeePayrollData(employeeId, name, salary, startDate);
+			}	
+		} catch (SQLException e) {
+			throw new EmployeePayrollDBException("Unable to insert into payroll_details");
+		} finally {
+			if(connection != null)
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+		}
+		return employeePayrollData;
+	}
+
 
 	public List<EmployeePayrollData> getEmployeePayrollData(String name) {
 		List<EmployeePayrollData> employeePayrollList = null;
@@ -193,5 +243,4 @@ public class EmployeePayrollDBService {
 		log.log(Level.INFO, ()-> "Connection Successful : "+connection);
 		return connection;
 	}
-
 }
