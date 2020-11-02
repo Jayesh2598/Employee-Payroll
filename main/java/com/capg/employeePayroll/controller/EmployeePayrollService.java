@@ -1,5 +1,6 @@
 package com.capg.employeePayroll.controller;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -101,5 +102,12 @@ public class EmployeePayrollService {
 	public boolean checkEmployeePayrollInSyncWithDB(String name) {
 		List<EmployeePayrollData> employeePayrollDataList = employeePayrollDBService.getEmployeePayrollData(name);
 		return employeePayrollDataList.get(0).equals(getEmployeePayrollData(name));
+	}
+
+	public List<EmployeePayrollData> readEmployeePayrollForDateRange(IOService ioService, Date date,
+			Date date2) {
+		if (ioService == IOService.DB_IO)
+			return employeePayrollDBService.getEmployeePayrollForDateRange(date, date2);
+		return null;
 	}
 }

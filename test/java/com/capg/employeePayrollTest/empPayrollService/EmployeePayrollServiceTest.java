@@ -1,6 +1,8 @@
 package com.capg.employeePayrollTest.empPayrollService;
 
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.sql.Date;
 import java.util.List;
 
 import org.junit.Test;
@@ -29,19 +31,29 @@ public class EmployeePayrollServiceTest {
 		assertTrue(entries == 3);
 	}
 	
-	@Test
+	@Test //JDBC_UC1,2
 	public void givenEmployeePayrollDB_WhenRetrieved_ShouldMatchEmployeeCount() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
 		assertTrue(data.size() == 3);
 	}
 	
-	@Test
+	@Test //JDBC_UC3,4
 	public void givenNewSalaryForEmployee_WhenUpdated_ShouldSyncWithDB() throws EmployeePayrollDBException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
 		employeePayrollService.updateEmployeeSalary("Terisa", 3000000.00);
 		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa");
 		assertTrue(result);
+	}
+	
+	@Test //JDBC_UC5
+	public void givenDateRange_WhenRetrieved_ShouldMatchEmployeeCount() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
+		LocalDate startDate = LocalDate.of(2018, 01, 02);
+		LocalDate endDate = LocalDate.now();
+		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollForDateRange(IOService.DB_IO, Date.valueOf(startDate), Date.valueOf(endDate));
+		assertTrue(data.size() == 3);
 	}
 }
