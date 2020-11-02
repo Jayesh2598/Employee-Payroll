@@ -3,10 +3,12 @@ package com.capg.employeePayroll.controller;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.capg.employeePayroll.controller.EmployeePayrollDBService.Operation;
 import com.capg.employeePayroll.fileOps.EmployeePayrollFileIOService;
 import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
 import com.capg.employeePayroll.model.EmployeePayrollData;
@@ -108,6 +110,12 @@ public class EmployeePayrollService {
 			Date date2) {
 		if (ioService == IOService.DB_IO)
 			return employeePayrollDBService.getEmployeePayrollForDateRange(date, date2);
+		return null;
+	}
+
+	public Map<String, Double> readDataByGender(IOService ioService, Operation operation) {
+		if (ioService == IOService.DB_IO)
+			return employeePayrollDBService.getDataByGender(operation);
 		return null;
 	}
 }

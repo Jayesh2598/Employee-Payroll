@@ -2,8 +2,10 @@ package com.capg.employeePayrollTest.empPayrollService;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.sql.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
@@ -11,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 import com.capg.employeePayroll.model.EmployeePayrollData;
 import com.capg.employeePayroll.controller.EmployeePayrollService;
 import com.capg.employeePayroll.controller.EmployeePayrollService.IOService;
+import com.capg.employeePayroll.controller.EmployeePayrollDBService.Operation;
 import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
 
 import static com.capg.employeePayroll.controller.EmployeePayrollService.IOService.FILE_IO;
@@ -55,5 +58,22 @@ public class EmployeePayrollServiceTest {
 		LocalDate endDate = LocalDate.now();
 		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollForDateRange(IOService.DB_IO, Date.valueOf(startDate), Date.valueOf(endDate));
 		assertTrue(data.size() == 3);
+	}
+	
+	@Test //JDBC_UC6
+	public void givenPayrollData_ShouldReturnProperValue() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
+		Map<String, Double> dataByGender = new HashMap<>();
+		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.SUM);
+		assertTrue(dataByGender.get("M").equals(4000000.00) && dataByGender.get("F").equals(3000000.00));
+		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.AVG);
+		assertTrue(dataByGender.get("M").equals(2000000.00) && dataByGender.get("F").equals(3000000.00));
+		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.MIN);
+		assertTrue(dataByGender.get("M").equals(1000000.00) && dataByGender.get("F").equals(3000000.00));
+		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.MAX);
+		assertTrue(dataByGender.get("M").equals(3000000.00) && dataByGender.get("F").equals(3000000.00));
+		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.COUNT);
+		assertTrue(dataByGender.get("M").equals(2.00) && dataByGender.get("F").equals(1.00));
 	}
 }

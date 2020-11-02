@@ -7,14 +7,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.sql.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.capg.employeePayroll.model.EmployeePayrollData;
 
 public class EmployeePayrollDBService {
+	
+	public enum Operation {
+		SUM, AVG, MIN, MAX, COUNT;
+	}
 	
 	private static Logger LOG = Logger.getLogger(EmployeePayrollDBService.class.getName());
 	
@@ -38,6 +44,50 @@ public class EmployeePayrollDBService {
 	public List<EmployeePayrollData> getEmployeePayrollForDateRange(Date startDate, Date endDate) {
 		String sql = String.format("SELECT * FROM employee_payroll WHERE start BETWEEN '%s' AND '%s'", startDate, endDate);
 		return getEmployeePayrollAfterExecutingQuery(sql);
+	}
+	
+	public Map<String, Double> getDataByGender(Operation operation) {
+		String sql, columnName;
+		switch (operation) {
+			case SUM:
+				sql = "SELECT gender, SUM(salary) AS Sum FROM employee_payroll GROUP BY gender;";
+				columnName = "Sum";
+				break;
+			case AVG:
+				sql = "SELECT gender, AVG(salary) AS Avg FROM employee_payroll GROUP BY gender;";
+				columnName = "Avg";
+				break;
+			case MIN:
+				sql = "SELECT gender, MIN(salary) AS Min FROM employee_payroll GROUP BY gender;";
+				columnName = "Min";
+				break;
+			case MAX:
+				sql = "SELECT gender, MAX(salary) AS Max FROM employee_payroll GROUP BY gender;";
+				columnName = "Max";
+				break;
+			case COUNT:
+				sql = "SELECT gender, COUNT(id) AS No_Of_Employees FROM employee_payroll GROUP BY gender;";
+				columnName = "No_Of_Employees";
+				break;
+			default:
+				sql = null;
+				columnName = null;
+				break;	
+		}
+		Map<String, Double> genderDataMap = new HashMap<>();
+		try (Connection con = this.getConnection()) {
+			Statement statement = con.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+			while(resultSet.next()) {
+				String gender = resultSet.getString("gender");
+				double data = resultSet.getDouble(columnName);
+				genderDataMap.put(gender, data);
+			}
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return genderDataMap;
 	}
 	
 	public List<EmployeePayrollData> getEmployeePayrollAfterExecutingQuery(String sql){
