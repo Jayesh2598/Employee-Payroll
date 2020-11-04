@@ -18,11 +18,11 @@ public class EmployeePayrollService {
 	public enum IOService {
 		CONSOLE_IO, FILE_IO, DB_IO, REST_IO
 	}
-	
+
 	public enum Database {
 		DENORMALIZED, NORMALIZED;
 	}
-	
+
 	private static Logger log = Logger.getLogger(EmployeePayrollService.class.getName());
 	private List<EmployeePayrollData> employeePayrollList;
 	private List<String> readFile;
@@ -32,7 +32,7 @@ public class EmployeePayrollService {
 	public List<String> getReadFile() {
 		return readFile;
 	}
-	
+
 	public EmployeePayrollService() {
 		employeePayrollDBService = EmployeePayrollDBService.getInstance();
 		employeePayrollNormalizedDBService = EmployeePayrollNormalizedDBService.getInstance();
@@ -91,9 +91,9 @@ public class EmployeePayrollService {
 
 	public List<EmployeePayrollData> readEmployeePayrollDB(IOService ioService, Database dbService) {
 		if (ioService == IOService.DB_IO) {
-			if(dbService == Database.DENORMALIZED)
+			if (dbService == Database.DENORMALIZED)
 				this.employeePayrollList = employeePayrollDBService.readData();
-			if(dbService == Database.NORMALIZED)
+			if (dbService == Database.NORMALIZED)
 				this.employeePayrollList = employeePayrollNormalizedDBService.readData();
 		}
 		return employeePayrollList;
@@ -101,9 +101,9 @@ public class EmployeePayrollService {
 
 	public void updateEmployeeSalary(String name, double salary, Database dbService) throws EmployeePayrollDBException {
 		int result = 0;
-		if(dbService == Database.DENORMALIZED)
+		if (dbService == Database.DENORMALIZED)
 			result = employeePayrollDBService.updateEmployeeData(name, salary);
-		if(dbService == Database.NORMALIZED)
+		if (dbService == Database.NORMALIZED)
 			result = employeePayrollNormalizedDBService.updateEmployeeData(name, salary);
 		if (result == 0)
 			throw new EmployeePayrollDBException("No updation performed.");
@@ -120,22 +120,22 @@ public class EmployeePayrollService {
 	}
 
 	public boolean checkEmployeePayrollInSyncWithDB(String name, Database dbService) {
-		if(dbService == Database.DENORMALIZED) {
+		if (dbService == Database.DENORMALIZED) {
 			List<EmployeePayrollData> employeePayrollDataList = employeePayrollDBService.getEmployeePayrollData(name);
 			return employeePayrollDataList.get(0).equals(getEmployeePayrollData(name));
-		}
-		else {
-			List<EmployeePayrollData> employeePayrollDataList = employeePayrollNormalizedDBService.getEmployeePayrollData(name);
+		} else {
+			List<EmployeePayrollData> employeePayrollDataList = employeePayrollNormalizedDBService
+					.getEmployeePayrollData(name);
 			return employeePayrollDataList.get(0).equals(getEmployeePayrollData(name));
 		}
 	}
 
-	public List<EmployeePayrollData> readEmployeePayrollForDateRange(IOService ioService, Database dbService, Date startDate,
-			Date endDate) {
+	public List<EmployeePayrollData> readEmployeePayrollForDateRange(IOService ioService, Database dbService,
+																		Date startDate, Date endDate) {
 		if (ioService == IOService.DB_IO) {
-			if(dbService == Database.DENORMALIZED)
+			if (dbService == Database.DENORMALIZED)
 				return employeePayrollDBService.getEmployeePayrollForDateRange(startDate, endDate);
-			if(dbService == Database.NORMALIZED)
+			if (dbService == Database.NORMALIZED)
 				return employeePayrollNormalizedDBService.getEmployeePayrollForDateRange(startDate, endDate);
 		}
 		return null;
@@ -143,9 +143,9 @@ public class EmployeePayrollService {
 
 	public Map<String, Double> readDataByGender(IOService ioService, Database dbService, Operation operation) {
 		if (ioService == IOService.DB_IO) {
-			if(dbService == Database.DENORMALIZED)
+			if (dbService == Database.DENORMALIZED)
 				return employeePayrollDBService.getDataByGender(operation);
-			if(dbService == Database.NORMALIZED)
+			if (dbService == Database.NORMALIZED)
 				return employeePayrollNormalizedDBService.getDataByGender(operation);
 		}
 		return null;
@@ -158,11 +158,12 @@ public class EmployeePayrollService {
 			log.log(Level.SEVERE, e.getMessage());
 		}
 	}
-	
-	public void addEmployeeToNormalizedPayroll(String name, String gender, String address, String phNo, double salary, Date startDate, int companyId,
-			String companyName, String departmentName, int departmentId) {
+
+	public void addEmployeeToNormalizedPayroll(String name, String gender, String address, String phNo, double salary,
+							Date startDate, int companyId, String companyName, String departmentName, int departmentId) {
 		try {
-			employeePayrollList.add(employeePayrollNormalizedDBService.addEmployeeToPayroll(name, gender, address, phNo, salary, startDate, companyId, companyName, departmentName, departmentId));
+			employeePayrollList.add(employeePayrollNormalizedDBService.addEmployeeToPayroll(name, gender, address, phNo,
+												salary, startDate, companyId, companyName, departmentName, departmentId));
 		} catch (EmployeePayrollDBException e) {
 			log.log(Level.SEVERE, e.getMessage());
 		}
