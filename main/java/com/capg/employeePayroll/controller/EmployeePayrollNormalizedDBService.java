@@ -290,6 +290,13 @@ public class EmployeePayrollNormalizedDBService {
 				e1.printStackTrace();
 			}
 			throw new EmployeePayrollDBException("Unable to insert into employee_department");
+		} finally {
+			if(connection != null)
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 		}
 		return employeePayrollData;
 	}

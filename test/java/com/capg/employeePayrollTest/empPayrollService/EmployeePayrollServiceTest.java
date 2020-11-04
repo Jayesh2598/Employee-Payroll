@@ -121,7 +121,7 @@ public class EmployeePayrollServiceTest {
 
 		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
 		employeePayrollService.addEmployeeToNormalizedPayroll("Frank", "M", "Paris", "7045279237", 50000,
-				Date.valueOf(LocalDate.of(2019, 11, 25)), 5, "HP", "Finance", 105);
+											Date.valueOf(LocalDate.of(2019, 11, 25)), 5, "HP", "Finance", 105);
 		result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Frank", Database.NORMALIZED);
 		assertTrue(result);
 	}
