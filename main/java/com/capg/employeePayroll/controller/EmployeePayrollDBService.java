@@ -216,7 +216,6 @@ public class EmployeePayrollDBService {
 		return employeePayrollList;
 	}
 
-
 	private void prepareStatementForEmployeeData() {
 		try {
 			Connection connection = this.getConnection();

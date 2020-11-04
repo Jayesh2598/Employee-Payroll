@@ -10,12 +10,12 @@ import java.util.Map;
 import org.junit.Test;
 import org.junit.Assert;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.capg.employeePayroll.model.EmployeePayrollData;
 
 import com.capg.employeePayroll.controller.EmployeePayrollService;
+import com.capg.employeePayroll.controller.EmployeePayrollService.Database;
 import com.capg.employeePayroll.controller.EmployeePayrollService.IOService;
 import com.capg.employeePayroll.controller.EmployeePayrollDBService.Operation;
 import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
@@ -41,52 +41,84 @@ public class EmployeePayrollServiceTest {
 	@Test //JDBC_UC1,2
 	public void givenEmployeePayrollDB_WhenRetrieved_ShouldMatchEmployeeCount() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
-		assertEquals(3, data.size());
+		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
+		Assert.assertEquals(3, data.size());
+		
+		data = employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
+		Assert.assertEquals(4, data.size());
 	}
 	
 	@Test //JDBC_UC3,4
 	public void givenNewSalaryForEmployee_WhenUpdated_ShouldSyncWithDB() throws EmployeePayrollDBException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
-		employeePayrollService.updateEmployeeSalary("Terisa", 3000000.00);
-		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa");
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
+		employeePayrollService.updateEmployeeSalary("Terisa", 3000000.00, Database.DENORMALIZED);
+		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Terisa", Database.DENORMALIZED);
+		assertTrue(result);
+		
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
+		employeePayrollService.updateEmployeeSalary("Bill", 10000.00, Database.NORMALIZED);
+		result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Bill", Database.NORMALIZED);
 		assertTrue(result);
 	}
 	
 	@Test //JDBC_UC5
 	public void givenDateRange_WhenRetrieved_ShouldMatchEmployeeCount() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
-		LocalDate startDate = LocalDate.of(2018, 01, 02);
-		LocalDate endDate = LocalDate.now();
-		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollForDateRange(IOService.DB_IO, Date.valueOf(startDate), Date.valueOf(endDate));
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
+		LocalDate startDate1 = LocalDate.of(2018, 01, 02);
+		LocalDate endDate1 = LocalDate.now();
+		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollForDateRange(IOService.DB_IO, Database.DENORMALIZED, Date.valueOf(startDate1), Date.valueOf(endDate1));
 		Assert.assertEquals(3, data.size());
+		
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
+		LocalDate startDate2 = LocalDate.of(2018, 01, 01);
+		LocalDate endDate2 = LocalDate.now();
+		data = employeePayrollService.readEmployeePayrollForDateRange(IOService.DB_IO, Database.NORMALIZED, Date.valueOf(startDate2), Date.valueOf(endDate2));
+		Assert.assertEquals(4, data.size());
 	}
 	
 	@Test //JDBC_UC6
 	public void givenPayrollData_ShouldReturnProperValue() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
-		Map<String, Double> dataByGender = new HashMap<>();
-		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.SUM);
-		assertTrue(dataByGender.get("M").equals(4000000.00) && dataByGender.get("F").equals(3000000.00));
-		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.AVG);
-		assertTrue(dataByGender.get("M").equals(2000000.00) && dataByGender.get("F").equals(3000000.00));
-		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.MIN);
-		assertTrue(dataByGender.get("M").equals(1000000.00) && dataByGender.get("F").equals(3000000.00));
-		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.MAX);
-		assertTrue(dataByGender.get("M").equals(3000000.00) && dataByGender.get("F").equals(3000000.00));
-		dataByGender = employeePayrollService.readDataByGender(IOService.DB_IO, Operation.COUNT);
-		assertTrue(dataByGender.get("M").equals(2.00) && dataByGender.get("F").equals(1.00));
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
+		Map<String, Double> dataByGender1 = new HashMap<>();
+		dataByGender1 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.DENORMALIZED, Operation.SUM);
+		assertTrue(dataByGender1.get("M").equals(4000000.00) && dataByGender1.get("F").equals(3000000.00));
+		dataByGender1 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.DENORMALIZED, Operation.AVG);
+		assertTrue(dataByGender1.get("M").equals(2000000.00) && dataByGender1.get("F").equals(3000000.00));
+		dataByGender1 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.DENORMALIZED, Operation.MIN);
+		assertTrue(dataByGender1.get("M").equals(1000000.00) && dataByGender1.get("F").equals(3000000.00));
+		dataByGender1 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.DENORMALIZED, Operation.MAX);
+		assertTrue(dataByGender1.get("M").equals(3000000.00) && dataByGender1.get("F").equals(3000000.00));
+		dataByGender1 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.DENORMALIZED, Operation.COUNT);
+		assertTrue(dataByGender1.get("M").equals(2.00) && dataByGender1.get("F").equals(1.00));
+		
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
+		Map<String, Double> dataByGender2 = new HashMap<>();
+		dataByGender2 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.NORMALIZED, Operation.SUM);
+		assertTrue(dataByGender2.get("M").equals(30000.00) && dataByGender2.get("F").equals(70000.00));
+		dataByGender2 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.NORMALIZED, Operation.AVG);
+		assertTrue(dataByGender2.get("M").equals(15000.00) && dataByGender2.get("F").equals(35000.00));
+		dataByGender2 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.NORMALIZED, Operation.MIN);
+		assertTrue(dataByGender2.get("M").equals(10000.00) && dataByGender2.get("F").equals(30000.00));
+		dataByGender2 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.NORMALIZED, Operation.MAX);
+		assertTrue(dataByGender2.get("M").equals(20000.00) && dataByGender2.get("F").equals(40000.00));
+		dataByGender2 = employeePayrollService.readDataByGender(IOService.DB_IO, Database.NORMALIZED, Operation.COUNT);
+		assertTrue(dataByGender2.get("M").equals(2.00) && dataByGender2.get("F").equals(2.00));
 	}
 	
-	@Test //JDBC_UC7
+	@Test //JDBC_UC7,8
 	public void givenNewEmployee_WhenAdded_ShouldSyncWithDB() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO);
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
 		employeePayrollService.addEmployeeToPayroll("Mark", 5000000.00, Date.valueOf(LocalDate.now()), "M");
-		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Mark");
+		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Mark", Database.DENORMALIZED);
+		assertTrue(result);
+		
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
+		employeePayrollService.addEmployeeToNormalizedPayroll("Frank", "M", "Paris", "7045279237", 50000, Date.valueOf(LocalDate.of(2019, 11, 25)), 5, "HP", "Finance", 105);
+		result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Frank", Database.NORMALIZED);
 		assertTrue(result);
 	}
 }
