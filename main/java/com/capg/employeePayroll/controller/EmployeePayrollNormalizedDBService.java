@@ -47,7 +47,7 @@ public class EmployeePayrollNormalizedDBService {
 	}
 
 	public List<EmployeePayrollData> getEmployeePayrollForDateRange(Date startDate, Date endDate) {
-		String sql = String.format((generalSql + " WHERE start BETWEEN '%s' AND '%s';"), startDate, endDate);
+		String sql = String.format((generalSql + " WHERE is_active = true AND start BETWEEN '%s' AND '%s';"), startDate, endDate);
 		return getEmployeePayrollAfterExecutingQuery(sql);
 	}
 
@@ -56,23 +56,27 @@ public class EmployeePayrollNormalizedDBService {
 		String columnName;
 		switch (operation) {
 		case SUM:
-			sql = "SELECT e.gender, SUM(p.basic_pay) AS Sum FROM employee e inner join payroll p on e.employee_id = p.employee_id GROUP BY e.gender;";
+			sql = "SELECT e.gender, SUM(p.basic_pay) AS Sum FROM employee e inner join payroll p on e.employee_id = p.employee_id "
+					+ "WHERE e.is_active = true GROUP BY e.gender;";
 			columnName = "Sum";
 			break;
 		case AVG:
-			sql = "SELECT e.gender, AVG(p.basic_pay) AS Avg FROM employee e inner join payroll p on e.employee_id = p.employee_id GROUP BY e.gender;";
+			sql = "SELECT e.gender, AVG(p.basic_pay) AS Avg FROM employee e inner join payroll p on e.employee_id = p.employee_id "
+					+ "WHERE e.is_active = true GROUP BY e.gender;";
 			columnName = "Avg";
 			break;
 		case MIN:
-			sql = "SELECT e.gender, MIN(p.basic_pay) AS Min FROM employee e inner join payroll p on e.employee_id = p.employee_id GROUP BY e.gender;";
+			sql = "SELECT e.gender, MIN(p.basic_pay) AS Min FROM employee e inner join payroll p on e.employee_id = p.employee_id "
+					+ "WHERE e.is_active = true GROUP BY e.gender;";
 			columnName = "Min";
 			break;
 		case MAX:
-			sql = "SELECT e.gender, Max(p.basic_pay) AS Max FROM employee e inner join payroll p on e.employee_id = p.employee_id GROUP BY e.gender;";
+			sql = "SELECT e.gender, Max(p.basic_pay) AS Max FROM employee e inner join payroll p on e.employee_id = p.employee_id "
+					+ "WHERE e.is_active = true GROUP BY e.gender;";
 			columnName = "Max";
 			break;
 		case COUNT:
-			sql = "SELECT gender, COUNT(employee_id) AS No_Of_Employees FROM employee GROUP BY gender;";
+			sql = "SELECT gender, COUNT(employee_id) AS No_Of_Employees FROM employee WHERE is_active = true  GROUP BY gender;";
 			columnName = "No_Of_Employees";
 			break;
 		default:
@@ -299,5 +303,20 @@ public class EmployeePayrollNormalizedDBService {
 				}
 		}
 		return employeePayrollData;
+	}
+
+	
+	public EmployeePayrollData deleteEmployee(String name) {
+		try (Connection connection = this.getConnection(); 
+				Statement statement = connection.createStatement();) {
+			String sql = String.format("UPDATE employee SET is_active = false WHERE name = '%s'", name);
+			int result = statement.executeUpdate(sql);
+			if(result == 1) {
+				return this.getEmployeePayrollData(name).get(0);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

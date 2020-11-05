@@ -168,4 +168,8 @@ public class EmployeePayrollService {
 			log.log(Level.SEVERE, e.getMessage());
 		}
 	}
+
+	public boolean deleteEmployee(String name) {
+		return employeePayrollList.remove(employeePayrollNormalizedDBService.deleteEmployee(name));
+	}
 }

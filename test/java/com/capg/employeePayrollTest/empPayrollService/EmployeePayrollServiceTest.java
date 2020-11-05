@@ -125,4 +125,12 @@ public class EmployeePayrollServiceTest {
 		result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Frank", Database.NORMALIZED);
 		assertTrue(result);
 	}
+	
+	@Test //JDBC_UC12
+	public void givenEmployee_WhenDeleted_ShouldDeleteFromList_AndRemainInDB() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
+		boolean result = employeePayrollService.deleteEmployee("Frank");
+		assertTrue(result);
+	}
 }
