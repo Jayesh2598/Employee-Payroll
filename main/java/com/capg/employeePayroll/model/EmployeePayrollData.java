@@ -3,6 +3,7 @@ package com.capg.employeePayroll.model;
 import java.util.ArrayList;
 import java.sql.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class EmployeePayrollData {
 
@@ -57,5 +58,10 @@ public class EmployeePayrollData {
 			return false;
 		EmployeePayrollData that = (EmployeePayrollData) obj;
 		return id == that.id && Double.compare(that.salary, salary) == 0 && name.equals(that.name);
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(name, gender, salary, startDate);
 	}
 }

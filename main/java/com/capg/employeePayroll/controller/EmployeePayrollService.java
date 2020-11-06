@@ -2,6 +2,7 @@ package com.capg.employeePayroll.controller;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -163,6 +164,29 @@ public class EmployeePayrollService {
 	
 	public void addEmployeeToPayroll(List<EmployeePayrollData> list) {
 		list.forEach(employee -> this.addEmployeeToPayroll(employee.name, employee.salary, employee.startDate, employee.gender));
+	}
+	
+	public void addEmployeeToPayrollWithThreads(List<EmployeePayrollData> list) {
+		Map<Integer, Boolean> employeeAdditionStatus = new HashMap<>();
+		list.forEach(employee -> {
+			Runnable task = () -> {
+				employeeAdditionStatus.put(employee.hashCode(), false);
+				System.out.println("Employee being added: " + Thread.currentThread().getName());
+				this.addEmployeeToPayroll(employee.name, employee.salary, employee.startDate, employee.gender);
+				employeeAdditionStatus.put(employee.hashCode(), true);
+				System.out.println("Employee added: " + Thread.currentThread().getName());
+			};
+			Thread thread = new Thread(task, employee.name);
+			thread.start();
+		});
+		while(employeeAdditionStatus.containsValue(false)) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println(this.employeePayrollList);
 	}
 
 	public void addEmployeeToNormalizedPayroll(String name, String gender, String address, String phNo, double salary,
