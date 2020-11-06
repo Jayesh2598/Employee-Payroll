@@ -1,18 +1,18 @@
 package com.capg.employeePayroll.model;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 public class EmployeePayrollData {
 
-	public int id;
+	private int id;
 	public String name;
 	public double salary;
 	public Date startDate;
 	public String gender;
-	public String companyName;
-	public int companyId;
+	private String companyName;
+	private int companyId;
 	public List<String> departmentList = new ArrayList<>();
 
 	public EmployeePayrollData(int id, String name, double salary) {
@@ -26,10 +26,14 @@ public class EmployeePayrollData {
 		this.startDate = startDate;
 	}
 	
+	public EmployeePayrollData(int id, String name, double salary, Date startDate, String gender) {
+		this(id,name,salary,startDate);
+		this.gender = gender;
+	}
+	
 	public EmployeePayrollData(int id, String name, double salary, Date startDate, String gender, String companyName,
 			int companyId) {
-		this(id, name, salary, startDate);
-		this.gender = gender;
+		this(id, name, salary, startDate,gender);
 		this.companyName = companyName;
 		this.companyId = companyId;
 	}

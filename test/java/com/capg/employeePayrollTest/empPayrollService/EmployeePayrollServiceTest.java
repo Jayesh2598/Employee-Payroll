@@ -1,11 +1,14 @@
 package com.capg.employeePayrollTest.empPayrollService;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.junit.Test;
 import org.junit.Assert;
@@ -23,6 +26,9 @@ import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
 import static com.capg.employeePayroll.controller.EmployeePayrollService.IOService.FILE_IO;
 
 public class EmployeePayrollServiceTest {
+	
+	private Logger log = Logger.getLogger(EmployeePayrollServiceTest.class.getName());
+	
 	@Test
 	public void given3EmployeeEntriesWhenWrittenToFileShouldMatchFileEntries() {
 		EmployeePayrollData[] empArray = { new EmployeePayrollData(1, "Joe Biden", 10000.0),
@@ -132,5 +138,24 @@ public class EmployeePayrollServiceTest {
 		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
 		boolean result = employeePayrollService.deleteEmployee("Frank");
 		assertTrue(result);
+	}
+	
+	@Test
+	public void givenEmployees_WhenAddedToDB_ShouldMatchEmployeeEntries() {
+		EmployeePayrollData[] arrayOfEmployees = { 
+				new EmployeePayrollData(0, "Luffy", 100000.0, Date.valueOf(LocalDate.now()), "M"),
+				new EmployeePayrollData(0, "Deku", 200000.0, Date.valueOf(LocalDate.now()), "M"),
+				new EmployeePayrollData(0, "Naruto", 300000.0, Date.valueOf(LocalDate.now()), "M"),
+				new EmployeePayrollData(0, "Tanjiro", 400000.0, Date.valueOf(LocalDate.now()), "M"),
+				new EmployeePayrollData(0, "Gon", 500000.0, Date.valueOf(LocalDate.now()), "M"),
+				new EmployeePayrollData(0, "Archer", 600000.0, Date.valueOf(LocalDate.now()), "M") 
+				};
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
+		Instant start = Instant.now();
+		employeePayrollService.addEmployeeToPayroll(Arrays.asList(arrayOfEmployees));
+		Instant end = Instant.now();
+		log.info("Duration without thread : " + Duration.between(start, end));
+		Assert.assertEquals(7, employeePayrollService.countEntries(IOService.DB_IO));
 	}
 }

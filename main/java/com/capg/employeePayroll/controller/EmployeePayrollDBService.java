@@ -126,7 +126,7 @@ public class EmployeePayrollDBService {
 		String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, start) " + "VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, startDate);
 		try (Connection connection = this.getConnection();
 			Statement statement = connection.createStatement();) {
-			int rowsAffected = statement.executeUpdate(sql, statement.RETURN_GENERATED_KEYS);
+			int rowsAffected = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
 			if(rowsAffected == 1) {
 				ResultSet resultSet = statement.getGeneratedKeys();
 				if(resultSet.next())
@@ -155,7 +155,7 @@ public class EmployeePayrollDBService {
 		try (Statement statement = connection.createStatement();) {
 			String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, start) " + 
 										"VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, startDate);
-			int rowsAffected = statement.executeUpdate(sql, statement.RETURN_GENERATED_KEYS);
+			int rowsAffected = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
 			if(rowsAffected == 1) {
 				ResultSet resultSet = statement.getGeneratedKeys();
 				if(resultSet.next())
@@ -175,7 +175,7 @@ public class EmployeePayrollDBService {
 			double taxable_pay = salary - deductions;
 			double tax = taxable_pay * 0.1;
 			double net_pay = salary - tax;
-			String sql = String.format("INSERT INTO payroll_details (employee_id, basic_pay, deductions, taxable_pay, tax, net_pay)" 
+			String sql = String.format("INSERT INTO payroll_details (id, basic_pay, deductions, taxable_pay, tax, net_pay)" 
 										+ " VALUES ('%s', '%s', '%s', '%s', '%s', '%s');", employeeId, salary, deductions, taxable_pay, tax, net_pay);
 			int rowsAffected = statement.executeUpdate(sql);
 			if(rowsAffected == 1) {

@@ -75,6 +75,8 @@ public class EmployeePayrollService {
 	public long countEntries(IOService ioService) {
 		if (ioService.equals(IOService.FILE_IO))
 			return new EmployeePayrollFileIOService().countEntries();
+		if (ioService.equals(IOService.DB_IO))
+			return employeePayrollList.size();
 		return 0;
 	}
 
@@ -157,6 +159,10 @@ public class EmployeePayrollService {
 		} catch (EmployeePayrollDBException e) {
 			log.log(Level.SEVERE, e.getMessage());
 		}
+	}
+	
+	public void addEmployeeToPayroll(List<EmployeePayrollData> list) {
+		list.forEach(employee -> this.addEmployeeToPayroll(employee.name, employee.salary, employee.startDate, employee.gender));
 	}
 
 	public void addEmployeeToNormalizedPayroll(String name, String gender, String address, String phNo, double salary,
