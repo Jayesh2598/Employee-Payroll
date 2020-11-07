@@ -251,10 +251,8 @@ public class EmployeePayrollDBService {
 		String password = "Interference@SQL1";
 		connectionCounter++;
 		Connection connection;
-		//System.out.println("Processing thread: " + Thread.currentThread().getName() +"Connecting to db with id: " + connectionCounter);
 		log.log(Level.INFO, ()-> "Processing thread: " + Thread.currentThread().getName() +"Connecting to db with id: " + connectionCounter);
 		connection = DriverManager.getConnection(dbURL, userName, password);
-		//System.out.println("Processing thread: " + Thread.currentThread().getName() + "Connection to db with id: " + connectionCounter + "successful!!!!!");
 		log.log(Level.INFO, ()-> "Processing thread: " + Thread.currentThread().getName() + "Connection to db with id: " + connectionCounter + "successful!!!!!");
 		return connection;
 	}

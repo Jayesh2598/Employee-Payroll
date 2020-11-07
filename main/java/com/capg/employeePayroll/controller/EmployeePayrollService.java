@@ -171,10 +171,10 @@ public class EmployeePayrollService {
 		list.forEach(employee -> {
 			Runnable task = () -> {
 				employeeAdditionStatus.put(employee.hashCode(), false);
-				System.out.println("Employee being added: " + Thread.currentThread().getName());
+				log.log(Level.INFO, ()-> "Employee being added: " + Thread.currentThread().getName());
 				this.addEmployeeToPayroll(employee.name, employee.salary, employee.startDate, employee.gender);
 				employeeAdditionStatus.put(employee.hashCode(), true);
-				System.out.println("Employee added: " + Thread.currentThread().getName());
+				log.log(Level.INFO, ()-> "Employee added: " + Thread.currentThread().getName());
 			};
 			Thread thread = new Thread(task, employee.name);
 			thread.start();
