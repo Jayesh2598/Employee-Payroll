@@ -186,7 +186,6 @@ public class EmployeePayrollService {
 				e.printStackTrace();
 			}
 		}
-		System.out.println(this.employeePayrollList);
 	}
 
 	public void addEmployeeToNormalizedPayroll(String name, String gender, String address, String phNo, double salary,
