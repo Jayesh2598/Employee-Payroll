@@ -120,6 +120,65 @@ public class EmployeePayrollDBService {
 		return 0;
 	}
 	
+	public int updateEmployeeSalaryInBothTables(String employeeName, Double salary) throws EmployeePayrollDBException {
+		int employeeId = 0;
+		Connection connection = null;
+		int result = 0;
+		try {
+			connection = this.getConnection();
+			connection.setAutoCommit(false);
+		}
+		catch (SQLException e) {
+			throw new EmployeePayrollDBException("Couldn't establish connection.");
+		}
+		
+		try (Statement statement = connection.createStatement();) {
+			String sql = String.format("UPDATE employee_payroll SET salary = %.2f WHERE name = '%s';", salary, employeeName);
+			int rowsAffected = statement.executeUpdate(sql);
+			if(rowsAffected == 1) {
+				String sql1 = String.format("SELECT id from employee_payroll WHERE name = '%s'", employeeName);
+				ResultSet resultSet = statement.executeQuery(sql1);
+				if(resultSet.next())
+					employeeId = resultSet.getInt("id");
+			}
+		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			throw new EmployeePayrollDBException("Unable to update employee_payroll");
+		}
+		
+		try (Statement statement = connection.createStatement();) {
+			double deductions = salary * 0.2;
+			double taxablePay = salary - deductions;
+			double tax = taxablePay * 0.1;
+			double netPay = salary - tax;
+			String sql = String.format("UPDATE payroll_details SET basic_pay = %s, deductions = %s, taxable_pay = %s, tax = %s, net_pay = %s"
+										+ " WHERE id = %s;", salary, deductions, taxablePay, tax, netPay, employeeId);
+			int rowsAffected = statement.executeUpdate(sql);
+			if(rowsAffected == 1) {
+				connection.commit();
+				result = 1;
+			}	
+		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			throw new EmployeePayrollDBException("Unable to update payroll_details");
+		} finally {
+			if(connection != null)
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+		}
+		return result;
+	}
 
 	public EmployeePayrollData addEmployeeToEmployeePayrollTable(String name, double salary, Date startDate, String gender) {
 		int employeeId = -1;
@@ -131,7 +190,7 @@ public class EmployeePayrollDBService {
 			if(rowsAffected == 1) {
 				ResultSet resultSet = statement.getGeneratedKeys();
 				if(resultSet.next())
-					employeeId = resultSet.getInt(1);
+					employeeId = resultSet.getInt("id");
 			}
 			employeePayrollData = new EmployeePayrollData(employeeId, name, salary, startDate);
 		}
@@ -177,7 +236,7 @@ public class EmployeePayrollDBService {
 			double tax = taxable_pay * 0.1;
 			double net_pay = salary - tax;
 			String sql = String.format("INSERT INTO payroll_details (id, basic_pay, deductions, taxable_pay, tax, net_pay)" 
-										+ " VALUES ('%s', '%s', '%s', '%s', '%s', '%s');", employeeId, salary, deductions, taxable_pay, tax, net_pay);
+										+ " VALUES (%s, %s, %s, %s, %s, %s);", employeeId, salary, deductions, taxable_pay, tax, net_pay);
 			int rowsAffected = statement.executeUpdate(sql);
 			if(rowsAffected == 1) {
 				employeePayrollData = new EmployeePayrollData(employeeId, name, salary, startDate);
@@ -251,9 +310,9 @@ public class EmployeePayrollDBService {
 		String password = "Interference@SQL1";
 		connectionCounter++;
 		Connection connection;
-		log.log(Level.INFO, ()-> "Processing thread: " + Thread.currentThread().getName() +"Connecting to db with id: " + connectionCounter);
+		log.log(Level.INFO, ()-> "Processing thread: " + Thread.currentThread().getName() +" Connecting to db with id: " + connectionCounter);
 		connection = DriverManager.getConnection(dbURL, userName, password);
-		log.log(Level.INFO, ()-> "Processing thread: " + Thread.currentThread().getName() + "Connection to db with id: " + connectionCounter + "successful!!!!!");
+		log.log(Level.INFO, ()-> "Processing thread: " + Thread.currentThread().getName() + " Connection to db with id: " + connectionCounter + "successful!!!!!");
 		return connection;
 	}
 }

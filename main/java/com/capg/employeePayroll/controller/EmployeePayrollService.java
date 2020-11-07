@@ -114,6 +114,42 @@ public class EmployeePayrollService {
 		if (employeePayrollData != null)
 			employeePayrollData.salary = salary;
 	}
+	
+	public void updateEmployeesSalary(Map<String, Double> empSalaryMap) {
+		Map<Integer, Boolean> employeeSalaryUpdationStatus = new HashMap<>();
+		empSalaryMap.forEach((employeeName, salary) -> {
+			Runnable task = () -> {
+				employeeSalaryUpdationStatus.put(employeeName.hashCode(), false);
+				log.log(Level.INFO, ()-> "Employee being updated: " + Thread.currentThread().getName());
+				try {
+					this.updateEmployeesSalary(employeeName, salary);
+				} catch (EmployeePayrollDBException e) {
+					System.out.println(e.getMessage());
+				}
+				employeeSalaryUpdationStatus.put(employeeName.hashCode(), true);
+				log.log(Level.INFO, ()-> "Employee updated: " + Thread.currentThread().getName());
+			};
+			Thread thread = new Thread(task, employeeName);
+			thread.start();
+		});
+		while(employeeSalaryUpdationStatus.containsValue(false)) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void updateEmployeesSalary(String employeeName, Double salary) throws EmployeePayrollDBException {
+		int result = 0;
+		result = employeePayrollDBService.updateEmployeeSalaryInBothTables(employeeName, salary);
+		if (result == 0)
+			throw new EmployeePayrollDBException("No updation performed.");
+		EmployeePayrollData employeePayrollData = this.getEmployeePayrollData(employeeName);
+		if (employeePayrollData != null)
+			employeePayrollData.salary = salary;
+	}
 
 	private EmployeePayrollData getEmployeePayrollData(String name) {
 		return this.employeePayrollList.stream()
@@ -131,6 +167,20 @@ public class EmployeePayrollService {
 					.getEmployeePayrollData(name);
 			return employeePayrollDataList.get(0).equals(getEmployeePayrollData(name));
 		}
+	}
+	
+	public boolean checkEmployeePayrollInSyncWithDB(Map<String, Double> empSalaryMap) {
+		List<EmployeePayrollData> employeePayrollDataList = new ArrayList<>();
+		empSalaryMap.forEach((employeeName, salary) -> {
+						EmployeePayrollData obj = employeePayrollDBService.getEmployeePayrollData(employeeName).get(0);
+						employeePayrollDataList.add(obj);
+					});
+		boolean result = true;
+		for(EmployeePayrollData data: employeePayrollDataList) {
+			boolean b = employeePayrollList.contains(data);
+			result = result && b;
+		}
+		return result;
 	}
 
 	public List<EmployeePayrollData> readEmployeePayrollForDateRange(IOService ioService, Database dbService,

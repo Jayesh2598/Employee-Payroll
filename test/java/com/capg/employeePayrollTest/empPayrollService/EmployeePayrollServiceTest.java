@@ -140,7 +140,7 @@ public class EmployeePayrollServiceTest {
 		assertTrue(result);
 	}
 	
-	@Test
+	@Test //MT_UC1-4
 	public void givenEmployees_WhenAddedToDB_ShouldMatchEmployeeEntries() {
 		EmployeePayrollData[] arrayOfEmployees = { 
 				new EmployeePayrollData(0, "Luffy", 100000.0, Date.valueOf(LocalDate.now()), "M"),
@@ -161,5 +161,24 @@ public class EmployeePayrollServiceTest {
 		Instant end2 = Instant.now();
 		log.info("Duration with thread : " + Duration.between(start2, end2));
 		Assert.assertEquals(13, employeePayrollService.countEntries(IOService.DB_IO));
+	}
+	
+	@Test //MT_UC6
+	public void givenNewSalariesForEmployees_WhenUpdated_ShouldSyncWithDB() {
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
+		Map<String, Double> empSalaryMap = new HashMap<>();
+		empSalaryMap.put("Luffy", 200000.00);
+		empSalaryMap.put("Deku", 300000.00);
+		empSalaryMap.put("Naruto", 400000.00);
+		empSalaryMap.put("Tanjiro", 500000.00);
+		empSalaryMap.put("Gon", 600000.00);
+		empSalaryMap.put("Archer", 700000.00);
+		Instant start = Instant.now();
+		employeePayrollService.updateEmployeesSalary(empSalaryMap);
+		Instant end = Instant.now();
+		log.info("Updating time taken : " + Duration.between(start, end));
+		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB(empSalaryMap);
+		assertTrue(result);
 	}
 }
