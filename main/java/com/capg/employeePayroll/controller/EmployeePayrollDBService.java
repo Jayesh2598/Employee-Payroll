@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.sql.Date;
@@ -43,8 +44,8 @@ public class EmployeePayrollDBService {
 		return getEmployeePayrollAfterExecutingQuery(sql);
 	}
 	
-	public List<EmployeePayrollData> getEmployeePayrollForDateRange(Date startDate, Date endDate) {
-		String sql = String.format("SELECT * FROM employee_payroll WHERE start BETWEEN '%s' AND '%s'", startDate, endDate);
+	public List<EmployeePayrollData> getEmployeePayrollForDateRange(LocalDate startDate, LocalDate endDate) {
+		String sql = String.format("SELECT * FROM employee_payroll WHERE startDate BETWEEN '%s' AND '%s'", Date.valueOf(startDate), Date.valueOf(endDate));
 		return getEmployeePayrollAfterExecutingQuery(sql);
 	}
 	
@@ -180,10 +181,10 @@ public class EmployeePayrollDBService {
 		return result;
 	}
 
-	public EmployeePayrollData addEmployeeToEmployeePayrollTable(String name, double salary, Date startDate, String gender) {
+	public EmployeePayrollData addEmployeeToEmployeePayrollTable(String name, double salary, LocalDate startDate, String gender) {
 		int employeeId = -1;
 		EmployeePayrollData employeePayrollData = null;
-		String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, start) " + "VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, startDate);
+		String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, startDate) " + "VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, Date.valueOf(startDate));
 		try (Connection connection = this.getConnection();
 			Statement statement = connection.createStatement();) {
 			int rowsAffected = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -200,7 +201,7 @@ public class EmployeePayrollDBService {
 		return employeePayrollData;
 	}
 	
-	public EmployeePayrollData addEmployeeToPayroll(String name, double salary, Date startDate, String gender) throws EmployeePayrollDBException {
+	public EmployeePayrollData addEmployeeToPayroll(String name, double salary, LocalDate startDate, String gender) throws EmployeePayrollDBException {
 		int employeeId = -1;
 		EmployeePayrollData employeePayrollData = null;
 		Connection connection = null;
@@ -213,8 +214,8 @@ public class EmployeePayrollDBService {
 		}
 		
 		try (Statement statement = connection.createStatement();) {
-			String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, start) " + 
-										"VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, startDate);
+			String sql = String.format("INSERT INTO employee_payroll (name, gender, salary, startDate) " + 
+										"VALUES ('%s', '%s', '%s', '%s');", name, gender, salary, Date.valueOf(startDate));
 			int rowsAffected = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
 			if(rowsAffected == 1) {
 				ResultSet resultSet = statement.getGeneratedKeys();
@@ -294,8 +295,8 @@ public class EmployeePayrollDBService {
 				int id = resultSet.getInt("id");
 				String name = resultSet.getString("name");
 				double salary = resultSet.getDouble("salary");
-				Date startDate = resultSet.getDate("start");
-				list.add(new EmployeePayrollData(id, name, salary, startDate));
+				Date startDate = resultSet.getDate("startDate");
+				list.add(new EmployeePayrollData(id, name, salary, startDate.toLocalDate()));
 			}
 		}
 		catch(SQLException e) {

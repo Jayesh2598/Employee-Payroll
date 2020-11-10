@@ -1,7 +1,7 @@
 package com.capg.employeePayroll.model;
 
 import java.util.ArrayList;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
@@ -10,7 +10,7 @@ public class EmployeePayrollData {
 	private int id;
 	public String name;
 	public double salary;
-	public Date startDate;
+	public LocalDate startDate;
 	public String gender;
 	private String companyName;
 	private int companyId;
@@ -22,24 +22,24 @@ public class EmployeePayrollData {
 		this.salary = salary;
 	}
 
-	public EmployeePayrollData(int id, String name, double salary, Date startDate) {
+	public EmployeePayrollData(int id, String name, double salary, LocalDate startDate) {
 		this(id, name, salary);
 		this.startDate = startDate;
 	}
 	
-	public EmployeePayrollData(int id, String name, double salary, Date startDate, String gender) {
+	public EmployeePayrollData(int id, String name, double salary, LocalDate startDate, String gender) {
 		this(id,name,salary,startDate);
 		this.gender = gender;
 	}
 	
-	public EmployeePayrollData(int id, String name, double salary, Date startDate, String gender, String companyName,
+	public EmployeePayrollData(int id, String name, double salary, LocalDate startDate, String gender, String companyName,
 			int companyId) {
 		this(id, name, salary, startDate,gender);
 		this.companyName = companyName;
 		this.companyId = companyId;
 	}
 	
-	public EmployeePayrollData(int id, String name, double salary, Date startDate, String gender, String companyName,
+	public EmployeePayrollData(int id, String name, double salary, LocalDate startDate, String gender, String companyName,
 			int companyId, List<String> department) {
 		this(id, name, salary, startDate, gender, companyName, companyId);
 		this.departmentList = department;

@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,7 @@ public class EmployeePayrollNormalizedDBService {
 	private PreparedStatement employeePayrollNormalizedDataPreparedStatement;
 	private static EmployeePayrollNormalizedDBService employeePayrollNormalizedDBService;
 
-	private final String generalSql = "select e.employee_id, e.name, e.gender, p.basic_pay as salary, e.start, c.company_id, c.company_name, d.department_name "
+	private final String generalSql = "select e.employee_id, e.name, e.gender, p.basic_pay as salary, e.startDate, c.company_id, c.company_name, d.department_name "
 										+ "from company c inner join employee e on c.company_id = e.company_id "
 										+ "inner join payroll p on p.employee_id = e.employee_id "
 										+ "inner join employee_department ed on e.employee_id = ed.employee_id "
@@ -46,8 +47,8 @@ public class EmployeePayrollNormalizedDBService {
 		return getEmployeePayrollAfterExecutingQuery(sql);
 	}
 
-	public List<EmployeePayrollData> getEmployeePayrollForDateRange(Date startDate, Date endDate) {
-		String sql = String.format((generalSql + " WHERE is_active = true AND start BETWEEN '%s' AND '%s';"), startDate, endDate);
+	public List<EmployeePayrollData> getEmployeePayrollForDateRange(LocalDate startDate, LocalDate endDate) {
+		String sql = String.format((generalSql + " WHERE is_active = true AND startDate BETWEEN '%s' AND '%s';"), Date.valueOf(startDate), Date.valueOf(endDate));
 		return getEmployeePayrollAfterExecutingQuery(sql);
 	}
 
@@ -169,17 +170,17 @@ public class EmployeePayrollNormalizedDBService {
 				String name = resultSet.getString("name");
 				String gender = resultSet.getString("gender");
 				double salary = resultSet.getDouble("salary");
-				Date startDate = resultSet.getDate("start");
+				Date startDate = resultSet.getDate("startDate");
 				int companyId = resultSet.getInt("company_id");
 				String companyName = resultSet.getString("company_name");
 				String dept = resultSet.getString("department_name");
-				EmployeePayrollData obj = new EmployeePayrollData(id, name, salary, startDate, gender, companyName,	companyId);
+				EmployeePayrollData obj = new EmployeePayrollData(id, name, salary, startDate.toLocalDate(), gender, companyName, companyId);
 				List<String> deptList = new ArrayList<>();
 				if (list.contains(obj)) {
 					obj.departmentList.add(dept);
 				} else {
 					deptList.add(dept);
-					list.add(new EmployeePayrollData(id, name, salary, startDate, gender, companyName, companyId, deptList));
+					list.add(new EmployeePayrollData(id, name, salary, startDate.toLocalDate(), gender, companyName, companyId, deptList));
 				}
 			}
 		} catch (SQLException e) {
@@ -200,7 +201,7 @@ public class EmployeePayrollNormalizedDBService {
 	}
 
 	public EmployeePayrollData addEmployeeToPayroll(String name, String gender, String address, String phNo,
-			double salary, Date startDate, int companyId, String companyName, String departmentName, int departmentId)
+			double salary, LocalDate startDate, int companyId, String companyName, String departmentName, int departmentId)
 			throws EmployeePayrollDBException {
 		EmployeePayrollData employeePayrollData = null;
 		Connection connection = null;
@@ -239,9 +240,9 @@ public class EmployeePayrollNormalizedDBService {
 
 		int employeeId = 0;
 		try (Statement statement = connection.createStatement();) {
-			String sql = String.format("INSERT INTO employee (name, company_id, gender, address, phone_number, start) "
+			String sql = String.format("INSERT INTO employee (name, company_id, gender, address, phone_number, startDate) "
 										+ "VALUES ('%s', '%s', '%s', '%s', '%s', '%s');",
-										name, companyId, gender, address, phNo, startDate);
+										name, companyId, gender, address, phNo, Date.valueOf(startDate));
 			int rowsAffected = statement.executeUpdate(sql);
 			if (rowsAffected == 1) {
 				String sql1 = String.format("SELECT employee_id from employee WHERE name = '%s'", name);

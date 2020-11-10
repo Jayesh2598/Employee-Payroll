@@ -5,17 +5,22 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Before;
 
 import static org.junit.Assert.assertTrue;
 
 import com.capg.employeePayroll.model.EmployeePayrollData;
+import com.google.gson.Gson;
+
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 
 import com.capg.employeePayroll.controller.EmployeePayrollService;
 import com.capg.employeePayroll.controller.EmployeePayrollService.Database;
@@ -24,6 +29,7 @@ import com.capg.employeePayroll.controller.EmployeePayrollDBService.Operation;
 import com.capg.employeePayroll.jdbc.EmployeePayrollDBException;
 
 import static com.capg.employeePayroll.controller.EmployeePayrollService.IOService.FILE_IO;
+import static com.capg.employeePayroll.controller.EmployeePayrollService.IOService.REST_IO;
 
 public class EmployeePayrollServiceTest {
 	
@@ -76,14 +82,14 @@ public class EmployeePayrollServiceTest {
 		LocalDate startDate1 = LocalDate.of(2018, 01, 02);
 		LocalDate endDate1 = LocalDate.now();
 		List<EmployeePayrollData> data = employeePayrollService.readEmployeePayrollForDateRange(IOService.DB_IO,
-										Database.DENORMALIZED, Date.valueOf(startDate1), Date.valueOf(endDate1));
+										Database.DENORMALIZED, startDate1, endDate1);
 		Assert.assertEquals(3, data.size());
 
 		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
 		LocalDate startDate2 = LocalDate.of(2018, 01, 01);
 		LocalDate endDate2 = LocalDate.now();
 		data = employeePayrollService.readEmployeePayrollForDateRange(IOService.DB_IO, Database.NORMALIZED,
-															Date.valueOf(startDate2), Date.valueOf(endDate2));
+															startDate2, endDate2);
 		Assert.assertEquals(4, data.size());
 	}
 
@@ -121,13 +127,13 @@ public class EmployeePayrollServiceTest {
 	public void givenNewEmployee_WhenAdded_ShouldSyncWithDB() {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
-		employeePayrollService.addEmployeeToPayroll("Mark", 5000000.00, Date.valueOf(LocalDate.now()), "M");
+		employeePayrollService.addEmployeeToPayroll("Mark", 5000000.00, LocalDate.now(), "M");
 		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Mark", Database.DENORMALIZED);
 		assertTrue(result);
 
 		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.NORMALIZED);
 		employeePayrollService.addEmployeeToNormalizedPayroll("Frank", "M", "Paris", "7045279237", 50000,
-											Date.valueOf(LocalDate.of(2019, 11, 25)), 5, "HP", "Finance", 105);
+											LocalDate.of(2019, 11, 25), 5, "HP", "Finance", 105);
 		result = employeePayrollService.checkEmployeePayrollInSyncWithDB("Frank", Database.NORMALIZED);
 		assertTrue(result);
 	}
@@ -143,12 +149,12 @@ public class EmployeePayrollServiceTest {
 	@Test //MT_UC1-4
 	public void givenEmployees_WhenAddedToDB_ShouldMatchEmployeeEntries() {
 		EmployeePayrollData[] arrayOfEmployees = { 
-				new EmployeePayrollData(0, "Luffy", 100000.0, Date.valueOf(LocalDate.now()), "M"),
-				new EmployeePayrollData(0, "Deku", 200000.0, Date.valueOf(LocalDate.now()), "M"),
-				new EmployeePayrollData(0, "Naruto", 300000.0, Date.valueOf(LocalDate.now()), "M"),
-				new EmployeePayrollData(0, "Tanjiro", 400000.0, Date.valueOf(LocalDate.now()), "M"),
-				new EmployeePayrollData(0, "Gon", 500000.0, Date.valueOf(LocalDate.now()), "M"),
-				new EmployeePayrollData(0, "Archer", 600000.0, Date.valueOf(LocalDate.now()), "M") 
+				new EmployeePayrollData(0, "Luffy", 100000.0, LocalDate.now(), "M"),
+				new EmployeePayrollData(0, "Deku", 200000.0, LocalDate.now(), "M"),
+				new EmployeePayrollData(0, "Naruto", 300000.0, LocalDate.now(), "M"),
+				new EmployeePayrollData(0, "Tanjiro", 400000.0, LocalDate.now(), "M"),
+				new EmployeePayrollData(0, "Gon", 500000.0, LocalDate.now(), "M"),
+				new EmployeePayrollData(0, "Archer", 600000.0, LocalDate.now(), "M") 
 				};
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollDB(IOService.DB_IO, Database.DENORMALIZED);
@@ -180,5 +186,51 @@ public class EmployeePayrollServiceTest {
 		log.info("Updating time taken : " + Duration.between(start, end));
 		boolean result = employeePayrollService.checkEmployeePayrollInSyncWithDB(empSalaryMap);
 		assertTrue(result);
+	}
+	
+	@Before
+	public void setup() {
+		RestAssured.baseURI = "http://localhost";
+		RestAssured.port = 3000;
+	}
+	
+	public EmployeePayrollData[] getEmployeeList() {
+		Response response = RestAssured.get("/employee_payroll");
+		System.out.println("Employee_Payroll entries in JSONServer:\n" + response.asString());
+		EmployeePayrollData[] arrEmployeePayrollDatas = new Gson().fromJson(response.asString(), EmployeePayrollData[].class);
+		return arrEmployeePayrollDatas;
+	}
+	
+	private Response addEmployeeToJsonServer(EmployeePayrollData data) {
+		String empJson = new Gson().toJson(data);
+		RequestSpecification request = RestAssured.given();
+		request.header("Content-Type", "application/json");
+		request.body(empJson);
+		return request.post("/employee_payroll");
+	}
+	
+	@Test
+	public void givenEmployeeDataInJsonServer_WhenRetrieved_ShouldMatchEmployeeCount() {
+		EmployeePayrollData[] arrayOfEmps = getEmployeeList();
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService(Arrays.asList(arrayOfEmps));
+		long entries = employeePayrollService.countEntries(REST_IO);
+		Assert.assertEquals(3, entries);
+	}
+	
+	@Test
+	public void givenNewEmployee_WhenAdded_ShouldMatch201ResponseAndCount() {
+		EmployeePayrollData[] arrayOfEmps = getEmployeeList();
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService(Arrays.asList(arrayOfEmps));
+		
+		EmployeePayrollData employee = new EmployeePayrollData(4, "Tywin Lannister", 400000, LocalDate.of(2020, 11, 10), "M");
+		
+		Response response = addEmployeeToJsonServer(employee);
+		int statusCode = response.getStatusCode();
+		Assert.assertEquals(201, statusCode);
+		
+		employee = new Gson().fromJson(response.asString(), EmployeePayrollData.class);
+		employeePayrollService.addEmployeeToPayroll(employee, REST_IO);
+		long entries = employeePayrollService.countEntries(REST_IO);
+		Assert.assertEquals(4, entries);
 	}
 }

@@ -1,6 +1,6 @@
 package com.capg.employeePayroll.controller;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +41,7 @@ public class EmployeePayrollService {
 
 	public EmployeePayrollService(List<EmployeePayrollData> employeePayrollList) {
 		this();
-		this.employeePayrollList = employeePayrollList;
+		this.employeePayrollList = new ArrayList<>(employeePayrollList);
 	}
 
 	public static void main(String[] args) {
@@ -76,9 +76,8 @@ public class EmployeePayrollService {
 	public long countEntries(IOService ioService) {
 		if (ioService.equals(IOService.FILE_IO))
 			return new EmployeePayrollFileIOService().countEntries();
-		if (ioService.equals(IOService.DB_IO))
+		else
 			return employeePayrollList.size();
-		return 0;
 	}
 
 	public void printData(IOService ioService) {
@@ -184,7 +183,7 @@ public class EmployeePayrollService {
 	}
 
 	public List<EmployeePayrollData> readEmployeePayrollForDateRange(IOService ioService, Database dbService,
-																		Date startDate, Date endDate) {
+																		LocalDate startDate, LocalDate endDate) {
 		if (ioService == IOService.DB_IO) {
 			if (dbService == Database.DENORMALIZED)
 				return employeePayrollDBService.getEmployeePayrollForDateRange(startDate, endDate);
@@ -203,8 +202,14 @@ public class EmployeePayrollService {
 		}
 		return null;
 	}
+	
+	public void addEmployeeToPayroll(EmployeePayrollData employee, IOService ioService) {
+		if(ioService.equals(IOService.DB_IO))
+			this.addEmployeeToPayroll(employee.name, employee.salary, employee.startDate, employee.gender);
+		else employeePayrollList.add(employee);
+	}
 
-	public void addEmployeeToPayroll(String name, double salary, Date startDate, String gender) {
+	public void addEmployeeToPayroll(String name, double salary, LocalDate startDate, String gender) {
 		try {
 			employeePayrollList.add(employeePayrollDBService.addEmployeeToPayroll(name, salary, startDate, gender));
 		} catch (EmployeePayrollDBException e) {
@@ -239,7 +244,7 @@ public class EmployeePayrollService {
 	}
 
 	public void addEmployeeToNormalizedPayroll(String name, String gender, String address, String phNo, double salary,
-							Date startDate, int companyId, String companyName, String departmentName, int departmentId) {
+							LocalDate startDate, int companyId, String companyName, String departmentName, int departmentId) {
 		try {
 			employeePayrollList.add(employeePayrollNormalizedDBService.addEmployeeToPayroll(name, gender, address, phNo,
 												salary, startDate, companyId, companyName, departmentName, departmentId));
