@@ -262,4 +262,10 @@ public class EmployeePayrollService {
 	public boolean deleteEmployee(String name) {
 		return employeePayrollList.remove(employeePayrollNormalizedDBService.deleteEmployee(name));
 	}
+
+	public void deleteEmployeePayroll(String name, IOService ioService) {
+		if(ioService.equals(IOService.REST_IO)) {
+			employeePayrollList.remove(this.getEmployeePayrollData(name));
+		}
+	}	
 }
