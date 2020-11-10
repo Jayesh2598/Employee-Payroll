@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.Test;
@@ -209,6 +210,29 @@ public class EmployeePayrollServiceTest {
 		return request.post("/employee_payroll");
 	}
 	
+	private void addEmployeeToJsonServerWithThreads(List<EmployeePayrollData> list, EmployeePayrollService employeePayrollService) {
+		Map<Integer, Boolean> employeeAdditionStatus = new HashMap<>();
+		list.forEach(employee -> {
+			Runnable task = () -> {
+				employeeAdditionStatus.put(employee.hashCode(), false);
+				log.log(Level.INFO, ()-> "Employee being added: " + Thread.currentThread().getName());
+				Response response = addEmployeeToJsonServer(employee);
+				log.log(Level.INFO, ()-> "Employee added: " + Thread.currentThread().getName());
+				employeePayrollService.addEmployeeToPayroll(employee, REST_IO);
+				employeeAdditionStatus.put(employee.hashCode(), true);
+			};
+			Thread thread = new Thread(task, employee.name);
+			thread.start();
+		});
+		while(employeeAdditionStatus.containsValue(false)) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	@Test
 	public void givenEmployeeDataInJsonServer_WhenRetrieved_ShouldMatchEmployeeCount() {
 		EmployeePayrollData[] arrayOfEmps = getEmployeeList();
@@ -232,5 +256,20 @@ public class EmployeePayrollServiceTest {
 		employeePayrollService.addEmployeeToPayroll(employee, REST_IO);
 		long entries = employeePayrollService.countEntries(REST_IO);
 		Assert.assertEquals(4, entries);
+	}
+	
+	@Test
+	public void given3Employees_WhenAdded_ShouldMatchCount() {
+		EmployeePayrollData[] arrayOfEmps = getEmployeeList();
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService(Arrays.asList(arrayOfEmps));
+		EmployeePayrollData[] employeeArray = {
+				new EmployeePayrollData(5, "Warren Buffet", 500000, LocalDate.of(2020, 11, 10), "M"),
+				new EmployeePayrollData(6, "Larry Page", 600000, LocalDate.of(2020, 11, 10), "M"),
+				new EmployeePayrollData(7, "Bernard Arnault", 700000, LocalDate.of(2020, 11, 10), "M"),
+		};
+		addEmployeeToJsonServerWithThreads(Arrays.asList(employeeArray), employeePayrollService);
+		getEmployeeList();
+		long entries = employeePayrollService.countEntries(REST_IO);
+		Assert.assertEquals(7, entries);
 	}
 }
