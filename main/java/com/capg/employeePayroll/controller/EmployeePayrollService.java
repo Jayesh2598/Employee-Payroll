@@ -111,6 +111,12 @@ public class EmployeePayrollService {
 			throw new EmployeePayrollDBException("No updation performed.");
 		EmployeePayrollData employeePayrollData = this.getEmployeePayrollData(name);
 		if (employeePayrollData != null)
+			employeePayrollData.salary = salary; 
+	}
+	
+	public void updateEmployeeSalary(String name, double salary) {
+		EmployeePayrollData employeePayrollData = this.getEmployeePayrollData(name);
+		if (employeePayrollData != null)
 			employeePayrollData.salary = salary;
 	}
 	
@@ -150,7 +156,7 @@ public class EmployeePayrollService {
 			employeePayrollData.salary = salary;
 	}
 
-	private EmployeePayrollData getEmployeePayrollData(String name) {
+	public EmployeePayrollData getEmployeePayrollData(String name) {
 		return this.employeePayrollList.stream()
 					.filter(item -> item.name.equals(name))
 					.findFirst()

@@ -216,7 +216,7 @@ public class EmployeePayrollServiceTest {
 			Runnable task = () -> {
 				employeeAdditionStatus.put(employee.hashCode(), false);
 				log.log(Level.INFO, ()-> "Employee being added: " + Thread.currentThread().getName());
-				Response response = addEmployeeToJsonServer(employee);
+				addEmployeeToJsonServer(employee);
 				log.log(Level.INFO, ()-> "Employee added: " + Thread.currentThread().getName());
 				employeePayrollService.addEmployeeToPayroll(employee, REST_IO);
 				employeeAdditionStatus.put(employee.hashCode(), true);
@@ -271,5 +271,21 @@ public class EmployeePayrollServiceTest {
 		getEmployeeList();
 		long entries = employeePayrollService.countEntries(REST_IO);
 		Assert.assertEquals(7, entries);
+	}
+	
+	@Test
+	public void givenNewSalary_WhenUpdated_ShouldMatch200ResponseCode() {
+		EmployeePayrollData[] arrayOfEmps = getEmployeeList();
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService(Arrays.asList(arrayOfEmps));
+		employeePayrollService.updateEmployeeSalary("Bernard Arnault", 800000.00);
+		EmployeePayrollData employee = employeePayrollService.getEmployeePayrollData("Bernard Arnault");
+		
+		String empJson = new Gson().toJson(employee);
+		RequestSpecification request = RestAssured.given();
+		request.header("Content-Type", "application/json");
+		request.body(empJson);
+		Response response = request.put("/employee_payroll/"+employee.id);
+		int statusCode = response.getStatusCode();
+		Assert.assertEquals(200, statusCode);
 	}
 }
